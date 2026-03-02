@@ -14,6 +14,6 @@ This is my first pet project created while lerarning the basics of Classic Machi
 * [ ] Optimization
 
 ### How to use
-1. Clone the repository: tbc
+1. Clone the repository: 'https://github.com/halwine/used-cars-pet'
 2. Install dependencies (work on 'requirements.txt' is in progress)
 3. Run the notebooks
