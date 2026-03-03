@@ -45,18 +45,17 @@ def _(raw_df):
 
 @app.cell
 def _(raw_df):
-    raw_df.describe()
-    return
-
-
-@app.cell
-def _(raw_df):
     # Save original df
     original_df = raw_df.copy()
 
     # Drop irrelevant features
     df = raw_df.drop(["id", "url", "region_url", "image_url", "county", "VIN"], axis=1)
 
+    # Drop cars with price less than 500 and more than 200_000
+    df = df[df["price"].between(500, 200_000)]
+
+    # Drop cars with odometer more than 400_000
+    df = df[df["odometer"] < 400_000]
 
     return (df,)
 
@@ -64,6 +63,22 @@ def _(raw_df):
 @app.cell
 def _(df):
     df.info()
+    return
+
+
+@app.cell
+def _(df):
+    df.describe()
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _():
     return
 
 
