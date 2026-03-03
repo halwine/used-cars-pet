@@ -85,6 +85,7 @@ def _(df):
 
 @app.cell
 def _(df):
+    # Stratified split to evenly destribute cars with different prices amond test and train set
     from sklearn.model_selection import StratifiedShuffleSplit
 
     split = StratifiedShuffleSplit(n_splits=1, test_size=0.2,
@@ -93,6 +94,15 @@ def _(df):
     for train_index, test_index in split.split(df, df["price_cat"]):
         strat_train_set = df.loc[train_index]
         strat_test_set = df.loc[test_index]
+
+    # Delete price_cat attribute 
+    strat_train_set = strat_train_set.drop("price_cat", axis=1)
+    strat_test_set = strat_test_set.drop("price_cat", axis=1)
+    return
+
+
+@app.cell
+def _():
     return
 
 
