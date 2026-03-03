@@ -3,10 +3,17 @@ This is my first pet project created while learning the basics of Classic Machin
 
 > **Note:** As this is a learning experiment, the code might contain some beginner mistakes. Please don't judge the architecture too harshly - code will be refactored as I gain more experience!
 
+### Task
+* Regression *(Predicting car prices)*
+
+### Dataset source
+* Kaggle [Used Car Dataset](https://www.kaggle.com/datasets/mohitkumar282/used-car-dataset)
+
 ### Tech Stack
 * **Language:** Python
 * **Version control:** Git & Github
-* **Libraries:** Pandas, NumPy, Scikit-learn, SciPy (tbc)
+* **Libraries:** Pandas, NumPy, Scikit-learn, SciPy, Matplotlib *(tbc)*
+* **Notebook:** Marimo
 
 ### Current status
 * [ ] Basic data cleaning
@@ -15,5 +22,5 @@ This is my first pet project created while learning the basics of Classic Machin
 
 ### How to use
 1. Clone the repository: [https://github.com/halwine/used-cars-pet](https://github.com/halwine/used-cars-pet)
-2. Install dependencies (work on 'requirements.txt' is in progress)
+2. Install dependencies *(work on 'requirements.txt' is in progress)*
 3. Run the notebooks
