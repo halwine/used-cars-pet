@@ -57,6 +57,8 @@ def _(raw_df):
     # Drop cars with odometer more than 400_000
     df = df[df["odometer"] < 400_000]
 
+    # Reset indexes of deleted instancies
+    df = df.reset_index(drop=True)
     return (df,)
 
 
@@ -82,7 +84,15 @@ def _(df):
 
 
 @app.cell
-def _():
+def _(df):
+    from sklearn.model_selection import StratifiedShuffleSplit
+
+    split = StratifiedShuffleSplit(n_splits=1, test_size=0.2,
+                                  random_state=42)
+
+    for train_index, test_index in split.split(df, df["price_cat"]):
+        strat_train_set = df.loc[train_index]
+        strat_test_set = df.loc[test_index]
     return
 
 
