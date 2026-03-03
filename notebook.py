@@ -19,33 +19,51 @@ def _(pd):
     path = kagglehub.dataset_download("austinreese/craigslist-carstrucks-data")
 
     print("Path to dataset files:", path)
-    df = pd.read_csv(path + "/" + "vehicles.csv")
-    return (df,)
+    raw_df = pd.read_csv(path + "/" + "vehicles.csv")
+    return (raw_df,)
 
 
 @app.cell
-def _(df):
-    df.head()
+def _(raw_df):
+    raw_df.head()
     return
 
 
 @app.cell
-def _(df):
-    df.info()
+def _(raw_df):
+    raw_df.info()
 
     # There are many attributes with missing features.
     return
 
 
 @app.cell
-def _(df):
-    df.nunique()
+def _(raw_df):
+    raw_df.nunique()
     return
 
 
 @app.cell
+def _(raw_df):
+    raw_df.describe()
+    return
+
+
+@app.cell
+def _(raw_df):
+    # Save original df
+    original_df = raw_df.copy()
+
+    # Drop irrelevant features
+    df = raw_df.drop(["id", "url", "region_url", "image_url", "county", "VIN"], axis=1)
+
+
+    return (df,)
+
+
+@app.cell
 def _(df):
-    df.describe()
+    df.info()
     return
 
 
