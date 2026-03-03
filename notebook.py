@@ -8,24 +8,44 @@ app = marimo.App(width="medium")
 def _():
     import pandas as pd
     import numpy as np
-
     return (pd,)
 
 
 @app.cell
-def _():
+def _(pd):
     import kagglehub
 
     # Download latest version
     path = kagglehub.dataset_download("austinreese/craigslist-carstrucks-data")
 
     print("Path to dataset files:", path)
-    return (path,)
+    df = pd.read_csv(path + "/" + "vehicles.csv")
+    return (df,)
 
 
 @app.cell
-def _(path, pd):
-    df = pd.read_csv(path + "/" + "vehicles.csv")
+def _(df):
+    df.head()
+    return
+
+
+@app.cell
+def _(df):
+    df.info()
+
+    # There are many attributes with missing features.
+    return
+
+
+@app.cell
+def _(df):
+    df.nunique()
+    return
+
+
+@app.cell
+def _(df):
+    df.describe()
     return
 
 
