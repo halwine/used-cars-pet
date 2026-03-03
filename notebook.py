@@ -49,7 +49,7 @@ def _(raw_df):
     original_df = raw_df.copy()
 
     # Drop irrelevant features
-    df = raw_df.drop(["id", "url", "region_url", "image_url", "county", "VIN"], axis=1)
+    df = raw_df.drop(["id", "url", "region_url", "image_url", "county", "VIN", "posting_date"], axis=1)
 
     # Drop cars with price less than 500 and more than 200_000
     df = df[df["price"].between(500, 200_000)]
@@ -70,7 +70,7 @@ def _(df):
 
 @app.cell
 def _(df, np, pd):
-    # Initialize stratified attribute
+    # Initialize stratified price attribute
     df["price_cat"] = pd.cut(df["price"],
                             bins=[0., 7000., 15000., 25000., 45000., np.inf],
                             labels=[1, 2, 3, 4, 5])
@@ -98,6 +98,19 @@ def _(df):
     # Delete price_cat attribute 
     strat_train_set = strat_train_set.drop("price_cat", axis=1)
     strat_test_set = strat_test_set.drop("price_cat", axis=1)
+    return (strat_train_set,)
+
+
+@app.cell
+def _(strat_train_set):
+    # Create copy of train set for practice
+    practice_df = strat_train_set.copy()
+    return (practice_df,)
+
+
+@app.cell
+def _(practice_df):
+    practice_df.info()
     return
 
 
