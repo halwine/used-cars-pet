@@ -49,7 +49,7 @@ def _(raw_df):
     original_df = raw_df.copy()
 
     # Drop irrelevant features
-    df = raw_df.drop(["id", "url", "region_url", "image_url", "county", "VIN", "posting_date"], axis=1)
+    df = raw_df.drop(["id", "url", "region_url", "image_url", "county", "VIN", "posting_date", "region"], axis=1)
 
     # Drop cars with price less than 500 and more than 200_000
     df = df[df["price"].between(500, 200_000)]
@@ -115,7 +115,9 @@ def _(practice_df):
 
 
 @app.cell
-def _():
+def _(Trueg, practice_df):
+    corr_matrix = practice_df.corr(numeric_only=True)
+    corr_matrix["price"].sort_values(ascending=Trueg)
     return
 
 
