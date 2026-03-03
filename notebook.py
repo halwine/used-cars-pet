@@ -8,7 +8,7 @@ app = marimo.App(width="medium")
 def _():
     import pandas as pd
     import numpy as np
-    return (pd,)
+    return np, pd
 
 
 @app.cell
@@ -62,23 +62,22 @@ def _(raw_df):
 
 @app.cell
 def _(df):
-    df.info()
-    return
-
-
-@app.cell
-def _(df):
     df.describe()
     return
 
 
 @app.cell
-def _():
+def _(df, np, pd):
+    # Initialize stratified attribute
+    df["price_cat"] = pd.cut(df["price"],
+                            bins=[0., 7000., 15000., 25000., 45000., np.inf],
+                            labels=[1, 2, 3, 4, 5])
     return
 
 
 @app.cell
-def _():
+def _(df):
+    df["price_cat"].hist()
     return
 
 
