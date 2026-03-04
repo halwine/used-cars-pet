@@ -32,8 +32,6 @@ def _(raw_df):
 @app.cell
 def _(raw_df):
     raw_df.info()
-
-    # There are many attributes with missing features.
     return
 
 
@@ -45,11 +43,83 @@ def _(raw_df):
 
 @app.cell
 def _(raw_df):
+    # Check missing values percent for each attribute
+    raw_df.isna().mean() * 100
+    return
+
+
+@app.cell
+def _():
+    """
+    Before data cleaning: 
+        state, odometer and price - 0%  
+    
+        size - 72% missing values and should be deleted
+    
+        condition - 38%
+        cylinders - 41%
+        drive - 30%
+        type - 22%
+        paint_color - 29%
+
+        year - 0.3%
+        fuel - 0.6%
+        title_status - 1.8%
+        transmission - 0.4%
+
+            Irrelevant data that should be dropped:
+        id
+        url
+        region_url      
+        image_url
+        posting_date
+        VIN
+
+            Useless data as we have "state" geo attribute
+        region
+        lat
+        long
+
+            0 Indices
+        county
+
+            Noisy data
+        model
+    
+    """
+    return
+
+
+@app.cell
+def _(raw_df):
     # Save original df
     original_df = raw_df.copy()
 
     # Drop irrelevant features
-    df = raw_df.drop(["id", "url", "region_url", "image_url", "county", "VIN", "posting_date", "region", "model", "description"], axis=1)
+    df = raw_df.drop([
+        # Irrelevant data:
+        "id",    
+        "url",    
+        "region_url",    
+        "image_url",    
+        "posting_date",    
+
+        # Does not affect car's value
+        "VIN",    
+
+        # Irrelevant data as we have "state" geo attribute
+        "region",
+        "lat",    
+        "long",
+
+        # Noisy data
+        "model",
+        "description",
+    
+    
+        "size",    # 70% missing values
+        "county"    # Have 0 indices
+    ], axis=1)
 
     # Drop cars with price less than 500 and more than 200_000
     df = df[df["price"].between(500, 200_000)]
@@ -60,6 +130,14 @@ def _(raw_df):
     # Reset indexes of deleted instancies
     df = df.reset_index(drop=True)
     return (df,)
+
+
+@app.cell
+def _(df):
+    # After data cleaning
+
+    df.isna().mean() * 100
+    return
 
 
 @app.cell
