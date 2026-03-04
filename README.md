@@ -16,7 +16,7 @@ This is my first pet project created while learning the basics of Classic Machin
 * **Notebook:** Marimo
 
 ### Current status
-* [ ] Basic data cleaning
+* [X] Basic data cleaning
 * [ ] Model training
 * [ ] Optimization
 
