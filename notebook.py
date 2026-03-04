@@ -135,14 +135,6 @@ def _(raw_df):
 
 @app.cell
 def _(df):
-    # After data cleaning
-
-    df.isna().mean() * 100
-    return
-
-
-@app.cell
-def _(df):
     df.describe()
     return
 
@@ -184,19 +176,46 @@ def _(df):
 def _(strat_train_set):
     # Create copy of train set for practice
     practice_df = strat_train_set.copy()
+
+    # List of columns with little missing data
+    attribs_to_clean = ["year", "fuel", "transmission", "manufacturer", "title_status"]
+
+    practice_df = practice_df.dropna(subset=attribs_to_clean)
+
+    """
+    Next step is to clear data from:
+
+    year (0.2850507449%)
+    fuel (0.6134003372%)
+    transmission (0.4041225751%)
+
+    title_status (1.7663282363%)
+    manufacturer (3.9079126572%)
+
+    summary data loss: 19396 indices
+    """
+    from sklearn.impute import SimpleImputer
+
+    # List of columns with more missing data (21% - 40%)
+    attribs_to_clean = ["condition", "cylinders", "drive",
+                       "type", "paint_color", ""]
+
+
+    # 1. Condition: fill gaps with "unknown"
+    imputer = SimpleImputer(strategy="constant", fill_value="unknown")
+
+    practice_df[["condition"]] = imputer.fit_transform(practice_df[["condition"]])
+
+
+    # 2. : ...
+
     return (practice_df,)
 
 
 @app.cell
 def _(practice_df):
-    practice_df.info()
-    return
-
-
-@app.cell
-def _(practice_df):
-    corr_matrix = practice_df.corr(numeric_only=True)
-    corr_matrix["price"].sort_values(ascending=True)
+    # Dataset after initial cleaning
+    practice_df.isna().mean() * 100
     return
 
 
