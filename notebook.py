@@ -207,7 +207,34 @@ def _(strat_train_set):
     practice_df[["condition"]] = imputer.fit_transform(practice_df[["condition"]])
 
 
-    # 2. : ...
+    # 2. Type: fill gaps with "unknown"
+    practice_df[["type"]] = imputer.fit_transform(practice_df[["type"]])
+
+
+    # 3. Drive: fill NaN(s) depending on average car's type 
+    # If type is unknown, remain drive unknown aswell
+
+    converter_dict = {
+        "unknown": "unknown",
+        "SUV": "4wd",
+        "bus": "rwd",
+        "convertible": "rwd",
+        "coupe": "rwd",
+        "hatchback": "fwd",
+        "sedan": "fwd",
+        "truck": "4wd",
+        "van": "fwd",
+        "wagon": "4wd",
+    }
+
+    drive_from_type = practice_df['type'].map(converter_dict)
+    practice_df['drive'] = practice_df['drive'].fillna(drive_from_type)
+
+    # Mapping made missing values drop from 40% to 5% total
+    # Drop remaining 5% indices with missing values
+    practice_df = practice_df.dropna(subset="drive")
+
+
 
     return (practice_df,)
 
@@ -216,11 +243,6 @@ def _(strat_train_set):
 def _(practice_df):
     # Dataset after initial cleaning
     practice_df.isna().mean() * 100
-    return
-
-
-@app.cell
-def _():
     return
 
 
