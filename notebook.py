@@ -53,9 +53,9 @@ def _():
     """
     Before data cleaning: 
         state, odometer and price - 0%  
-    
+
         size - 72% missing values and should be deleted
-    
+
         condition - 38%
         cylinders - 41%
         drive - 30%
@@ -86,15 +86,16 @@ def _():
             Noisy data
         model
         description
-    
+
     """
     return
 
 
 @app.cell
-def _(raw_df):
+def _(pd, raw_df):
     # Save original df
     original_df = raw_df.copy()
+
 
     # Drop irrelevant features
     df = raw_df.drop([
@@ -116,17 +117,34 @@ def _(raw_df):
         # Noisy data
         "model",
         "description",
-    
-    
+
+
         "size",    # 70% missing values
         "county"    # Have 0 indices
     ], axis=1)
 
+
     # Drop cars with price less than 500 and more than 200_000
     df = df[df["price"].between(500, 200_000)]
 
+
     # Drop cars with odometer more than 400_000
     df = df[df["odometer"] < 400_000]
+
+
+    # Convert 'cylinders' column to int
+
+        # Get rid of ' cylinders'
+    tmp_cyl = df['cylinders'].str.replace(' cylinders', '', regex=False)    
+
+        # Replace e.g. "6 cylinders" with just 6
+        # Convert 'other' to NaN
+    df['cylinders'] = pd.to_numeric(tmp_cyl, errors='coerce').astype('Int64')    
+
+        # Fill NaN with average (6 cylinders)
+    df['cylinders'] = df['cylinders'].fillna(6)
+
+
 
     # Reset indexes of deleted instancies
     df = df.reset_index(drop=True)
@@ -211,7 +229,11 @@ def _(strat_train_set):
     practice_df[["type"]] = imputer.fit_transform(practice_df[["type"]])
 
 
-    # 3. Drive: fill NaN(s) depending on average car's type 
+    # 3. Paint_color: fill gaps with "unknown"
+    practice_df[["paint_color"]] = imputer.fit_transform(practice_df[["paint_color"]])
+
+
+    # 4. Drive: fill NaN(s) depending on average car's type 
     # If type is unknown, remain drive unknown aswell
 
     converter_dict = {
@@ -235,8 +257,17 @@ def _(strat_train_set):
     practice_df = practice_df.dropna(subset="drive")
 
 
+    # 5. Cylinders: Fill NaN's depending on average cylinders-per-type value
+
+
 
     return (practice_df,)
+
+
+@app.cell
+def _(practice_df):
+    practice_df['drive'].value_counts()
+    return
 
 
 @app.cell
@@ -244,6 +275,47 @@ def _(practice_df):
     # Dataset after initial cleaning
     practice_df.isna().mean() * 100
     return
+
+
+@app.cell
+def _(pd, practice_df):
+    pd.set_option('display.max_rows', None)
+
+    print(practice_df.groupby('type')['cylinders'].apply(lambda x: x.mode()[0] if not x.mode().empty else "unknown"))
+
+    avg_cyl_dict = {
+        "SUV": 6,
+        "bus": 8,
+        "convertible": 8,
+        "coupe": 8,
+        "hatchback": 4,
+        "mini-van": 6,
+        "offroad": 6,
+    
+        "other": 6,
+        "pickup": 8,
+        "sedan": 4,
+        "truck": 8,
+        "van": 6,
+        "wagon": 4,
+
+        "unknown": 6
+    }
+    return
+
+
+@app.cell
+def _(practice_df):
+    practice_df['cylinders'].unique()
+    return
+
+
+app._unparsable_cell(
+    r"""
+    `
+    """,
+    name="_"
+)
 
 
 if __name__ == "__main__":
