@@ -44,7 +44,7 @@ def _(raw_df):
 @app.cell
 def _(raw_df):
     # Check missing values percent for each attribute
-    raw_df.isna().mean() * 100
+    raw_df.isna().mean().sort_values(ascending=False) * 100
     return
 
 
@@ -141,10 +141,6 @@ def _(pd, raw_df):
         # Convert 'other' to NaN
     df['cylinders'] = pd.to_numeric(tmp_cyl, errors='coerce').astype('Int64')    
 
-        # Fill NaN with average (6 cylinders)
-    df['cylinders'] = df['cylinders'].fillna(6)
-
-
 
     # Reset indexes of deleted instancies
     df = df.reset_index(drop=True)
@@ -161,8 +157,8 @@ def _(df):
 def _(df, np, pd):
     # Initialize stratified price attribute
     df["price_cat"] = pd.cut(df["price"],
-                            bins=[0., 7000., 15000., 25000., 45000., np.inf],
-                            labels=[1, 2, 3, 4, 5])
+            bins=[0., 7000., 15000., 25000., 45000., np.inf], 
+            labels=[1, 2, 3, 4, 5])
     return
 
 
@@ -174,7 +170,7 @@ def _(df):
 
 @app.cell
 def _(df):
-    # Stratified split to evenly destribute cars with different prices amond test and train set
+    # Stratified split to evenly destribute cars with different prices among test and train set
     from sklearn.model_selection import StratifiedShuffleSplit
 
     split = StratifiedShuffleSplit(n_splits=1, test_size=0.2,
@@ -243,6 +239,10 @@ def _(strat_train_set):
         "convertible": "rwd",
         "coupe": "rwd",
         "hatchback": "fwd",
+        "mini-van": "fwd",
+        "offroad": "4wd",
+        "other": "fwd",
+        "pickup": "fwd",
         "sedan": "fwd",
         "truck": "4wd",
         "van": "fwd",
@@ -252,21 +252,13 @@ def _(strat_train_set):
     drive_from_type = practice_df['type'].map(converter_dict)
     practice_df['drive'] = practice_df['drive'].fillna(drive_from_type)
 
-    # Mapping made missing values drop from 40% to 5% total
-    # Drop remaining 5% indices with missing values
-    practice_df = practice_df.dropna(subset="drive")
-
-
     # 5. Cylinders: Fill NaN's depending on average cylinders-per-type value
-
-
-
     return (practice_df,)
 
 
 @app.cell
 def _(practice_df):
-    practice_df['drive'].value_counts()
+    practice_df['drive'].isna().sum()
     return
 
 
@@ -291,7 +283,7 @@ def _(pd, practice_df):
         "hatchback": 4,
         "mini-van": 6,
         "offroad": 6,
-    
+
         "other": 6,
         "pickup": 8,
         "sedan": 4,
@@ -306,16 +298,8 @@ def _(pd, practice_df):
 
 @app.cell
 def _(practice_df):
-    practice_df['cylinders'].unique()
+    practice_df['type'].isna().sum()
     return
-
-
-app._unparsable_cell(
-    r"""
-    `
-    """,
-    name="_"
-)
 
 
 if __name__ == "__main__":
