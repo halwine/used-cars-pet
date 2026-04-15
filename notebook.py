@@ -232,7 +232,7 @@ def _(strat_train_set):
     # 4. Drive: fill NaN(s) depending on average car's type 
     # If type is unknown, remain drive unknown aswell
 
-    converter_dict = {
+    drive_modes_by_type = {
         "unknown": "unknown",
         "SUV": "4wd",
         "bus": "rwd",
@@ -249,33 +249,14 @@ def _(strat_train_set):
         "wagon": "4wd",
     }
 
-    drive_from_type = practice_df['type'].map(converter_dict)
+    drive_from_type = practice_df['type'].map(drive_modes_by_type)
     practice_df['drive'] = practice_df['drive'].fillna(drive_from_type)
 
+
     # 5. Cylinders: Fill NaN's depending on average cylinders-per-type value
-    return (practice_df,)
 
-
-@app.cell
-def _(practice_df):
-    practice_df['drive'].isna().sum()
-    return
-
-
-@app.cell
-def _(practice_df):
-    # Dataset after initial cleaning
-    practice_df.isna().mean() * 100
-    return
-
-
-@app.cell
-def _(pd, practice_df):
-    pd.set_option('display.max_rows', None)
-
-    print(practice_df.groupby('type')['cylinders'].apply(lambda x: x.mode()[0] if not x.mode().empty else "unknown"))
-
-    avg_cyl_dict = {
+    cyl_modes_by_type = {
+        "unknown": 6,
         "SUV": 6,
         "bus": 8,
         "convertible": 8,
@@ -289,16 +270,57 @@ def _(pd, practice_df):
         "sedan": 4,
         "truck": 8,
         "van": 6,
-        "wagon": 4,
-
-        "unknown": 6
+        "wagon": 4
     }
-    return
+
+    cyls_from_type = practice_df['type'].map(cyl_modes_by_type)
+    practice_df['cylinders'] = practice_df['cylinders'].fillna(cyls_from_type)
+    return (practice_df,)
 
 
 @app.cell
 def _(practice_df):
-    practice_df['type'].isna().sum()
+    # Dataset after initial cleaning
+    practice_df.isna().mean() * 100
+    return
+
+
+@app.cell
+def _(pd, practice_df):
+    pd.set_option('display.max_rows', 50)
+
+    print(practice_df.groupby('type')['cylinders'].apply(lambda x: x.mode()[0] if not x.mode().empty else "unknown"))
+
+    avg_cyl_dict = {
+        "unknown": 6,
+        "SUV": 6,
+        "bus": 8,
+        "convertible": 8,
+        "coupe": 8,
+        "hatchback": 4,
+        "mini-van": 6,
+        "offroad": 6,
+
+        "other": 6,
+        "pickup": 8,
+        "sedan": 4,
+        "truck": 8,
+        "van": 6,
+        "wagon": 4
+    }
+    return
+
+
+app._unparsable_cell(
+    r"""
+    practice_df['cylinders'].
+    """,
+    name="_"
+)
+
+
+@app.cell
+def _():
     return
 
 
