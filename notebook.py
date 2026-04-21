@@ -173,7 +173,7 @@ def _(df):
     # Stratified split to evenly destribute cars with different prices among test and train set
     from sklearn.model_selection import StratifiedShuffleSplit
 
-    split = StratifiedShuffleSplit(n_splits=1, test_size=0.2,
+    split = StratifiedShuffleSplit(n_splits=1, test_size=0.05,
                                   random_state=42)
 
     for train_index, test_index in split.split(df, df["price_cat"]):
@@ -286,37 +286,15 @@ def _(practice_df):
 
 
 @app.cell
-def _(pd, practice_df):
-    pd.set_option('display.max_rows', 50)
-
-    print(practice_df.groupby('type')['cylinders'].apply(lambda x: x.mode()[0] if not x.mode().empty else "unknown"))
-
-    avg_cyl_dict = {
-        "unknown": 6,
-        "SUV": 6,
-        "bus": 8,
-        "convertible": 8,
-        "coupe": 8,
-        "hatchback": 4,
-        "mini-van": 6,
-        "offroad": 6,
-
-        "other": 6,
-        "pickup": 8,
-        "sedan": 4,
-        "truck": 8,
-        "van": 6,
-        "wagon": 4
-    }
+def _(practice_df):
+    practice_df['manufacturer'].unique()
     return
 
 
-app._unparsable_cell(
-    r"""
-    practice_df['cylinders'].
-    """,
-    name="_"
-)
+@app.cell
+def _(practice_df):
+    practice_df.info()
+    return
 
 
 @app.cell
