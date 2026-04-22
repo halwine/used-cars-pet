@@ -280,6 +280,24 @@ def _(strat_train_set):
 
 @app.cell
 def _(practice_df):
+    # ---------- Feature engineering ----------
+
+    # Check corr matrix
+    # print(practice_df.corr(numeric_only=True))
+
+    # Create 'car_age' attribute
+    practice_df['car_age'] = 2026 - practice_df['year']
+
+    # Create 'miles_per_year' attribute
+    # Adding 1 to avoid zero division if there's a car made in 2026 in dataframe
+    practice_df['miles_per_year'] = practice_df['odometer'] / (practice_df['car_age'] + 1)
+
+    print(practice_df.corr(numeric_only=True))
+    return
+
+
+@app.cell
+def _(practice_df):
     # Dataset after initial cleaning
     practice_df.isna().mean() * 100
     return
@@ -294,6 +312,24 @@ def _(practice_df):
 @app.cell
 def _(practice_df):
     practice_df.info()
+    return
+
+
+@app.cell
+def _(pd, practice_df):
+    def check_categories(df):
+        cat_features = df.select_dtypes(include=['object']).columns
+        summary = []
+        for col in cat_features:
+            summary.append({
+                "feature": col,
+                "nunique": df[col].nunique(),
+                "examples": df[col].unique()[:10]
+            })
+
+        return pd.DataFrame(summary).sort_values(by="nunique")
+
+    check_categories(practice_df)
     return
 
 
