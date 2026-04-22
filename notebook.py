@@ -275,12 +275,9 @@ def _(strat_train_set):
 
     cyls_from_type = practice_df['type'].map(cyl_modes_by_type)
     practice_df['cylinders'] = practice_df['cylinders'].fillna(cyls_from_type)
-    return (practice_df,)
 
 
-@app.cell
-def _(practice_df):
-    # ---------- Feature engineering ----------
+    # ---------- FEATURE ENGINEERING ----------
 
     # Check corr matrix
     # print(practice_df.corr(numeric_only=True))
@@ -289,11 +286,15 @@ def _(practice_df):
     practice_df['car_age'] = 2026 - practice_df['year']
 
     # Create 'miles_per_year' attribute
-    # Adding 1 to avoid zero division if there's a car made in 2026 in dataframe
+    # Adding 1 to avoid zero division if there's a car made in 2026 in df
     practice_df['miles_per_year'] = practice_df['odometer'] / (practice_df['car_age'] + 1)
 
+    # Drop 'year' column as it has -1 corr to 'car_age' column 
+    practice_df = practice_df.drop('year', axis=1)
+
+    # Corr matrix after clearing NaNs and feature engineering
     print(practice_df.corr(numeric_only=True))
-    return
+    return (practice_df,)
 
 
 @app.cell
