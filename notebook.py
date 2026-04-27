@@ -25,12 +25,6 @@ def _(pd):
 
 @app.cell
 def _(raw_df):
-    raw_df.head()
-    return
-
-
-@app.cell
-def _(raw_df):
     raw_df.info()
     return
 
@@ -148,12 +142,6 @@ def _(pd, raw_df):
 
 
 @app.cell
-def _(df):
-    df.describe()
-    return
-
-
-@app.cell
 def _(df, np, pd):
     # Initialize stratified price attribute
     df["price_cat"] = pd.cut(df["price"],
@@ -191,6 +179,9 @@ def _(strat_train_set):
     # Create copy of train set for practice
     practice_df = strat_train_set.copy()
 
+
+    # ---------- DATA CLEANING ----------
+
     # List of columns with little missing data
     attribs_to_clean = ["year", "fuel", "transmission", "manufacturer", "title_status"]
 
@@ -208,26 +199,23 @@ def _(strat_train_set):
 
     summary data loss: 19396 indices
     """
+
     from sklearn.impute import SimpleImputer
 
     # List of columns with more missing data (21% - 40%)
     attribs_to_clean = ["condition", "cylinders", "drive",
                        "type", "paint_color", ""]
 
-
     # 1. Condition: fill gaps with "unknown"
     imputer = SimpleImputer(strategy="constant", fill_value="unknown")
 
     practice_df[["condition"]] = imputer.fit_transform(practice_df[["condition"]])
 
-
     # 2. Type: fill gaps with "unknown"
     practice_df[["type"]] = imputer.fit_transform(practice_df[["type"]])
 
-
     # 3. Paint_color: fill gaps with "unknown"
     practice_df[["paint_color"]] = imputer.fit_transform(practice_df[["paint_color"]])
-
 
     # 4. Drive: fill NaN(s) depending on average car's type 
     # If type is unknown, remain drive unknown aswell
@@ -251,7 +239,6 @@ def _(strat_train_set):
 
     drive_from_type = practice_df['type'].map(drive_modes_by_type)
     practice_df['drive'] = practice_df['drive'].fillna(drive_from_type)
-
 
     # 5. Cylinders: Fill NaN's depending on average cylinders-per-type value
 
@@ -293,49 +280,27 @@ def _(strat_train_set):
     practice_df = practice_df.drop('year', axis=1)
 
     # Corr matrix after clearing NaNs and feature engineering
-    print(practice_df.corr(numeric_only=True))
-    return (practice_df,)
+    # print(practice_df.corr(numeric_only=True))
 
 
-@app.cell
-def _(practice_df):
-    # Dataset after initial cleaning
-    practice_df.isna().mean() * 100
-    return
+    # ---------- OneHot encoded columns ----------
+    from sklearn.pipeline import Pipeline
+    from sklearn.compose import ColumnTransformer
+    from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
 
+    numeric_cats = ['odometer', 'cylinders', 'car_age', 'miles_per_year']
+    onehot_cats = ['transmission', 'drive', 'fuel', 'paint_color', 'type']
+    ordinal_cats = ['title_status', 'condition']
 
-@app.cell
-def _(practice_df):
-    practice_df['manufacturer'].unique()
-    return
+    title_status_order = ['missing', 'parts_only', 'salvage', 'rebuilt', 'lien', 'clean']
+    condition_order = ['salvage', 'fair', 'good', 'excellent','like new', 'new']
 
+    # ct = ColumnTransformer[
+    #     () 
+    # ]
 
-@app.cell
-def _(practice_df):
-    practice_df.info()
-    return
-
-
-@app.cell
-def _(pd, practice_df):
-    def check_categories(df):
-        cat_features = df.select_dtypes(include=['object']).columns
-        summary = []
-        for col in cat_features:
-            summary.append({
-                "feature": col,
-                "nunique": df[col].nunique(),
-                "examples": df[col].unique()[:10]
-            })
-
-        return pd.DataFrame(summary).sort_values(by="nunique")
-
-    check_categories(practice_df)
-    return
-
-
-@app.cell
-def _():
+    # cat_encoder = OneHotEncoder(sparse_output=False)
+    # transmission_cat_1hot = cat_encoder.fit_transform(practice_df[['transmission'])]
     return
 
 
