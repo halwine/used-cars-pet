@@ -133,7 +133,7 @@ def _(pd, raw_df):
 
         # Replace e.g. "6 cylinders" with just 6
         # Convert 'other' to NaN
-    df['cylinders'] = pd.to_numeric(tmp_cyl, errors='coerce').astype('Int64')    
+    df['cylinders'] = pd.to_numeric(tmp_cyl, errors='coerce').astype('float')    
 
 
     # Reset indexes of deleted instancies
@@ -256,12 +256,14 @@ def _():
     ], remainder='passthrough')
 
     # Complete pipeline
-    full_piepline = Pipeline([
+    full_pipeline = Pipeline([
         ('logic', prep_logic),
         ('encoding', encoding_ct),
         ('model', RandomForestRegressor())
     ])
-    return
+
+    full_pipeline.set_output(transform="pandas")
+    return (full_pipeline,)
 
 
 @app.cell
@@ -273,6 +275,15 @@ def _(strat_test_set, strat_train_set):
 
     X_test = strat_train_set.drop('price', axis=1)
     y_test = strat_test_set.loc[:, 'price']
+    return X_train, y_train
+
+
+@app.cell
+def _(X_train, full_piepline, full_pipeline, y_train):
+    # ---------- TRAINING AND TESTING MODEL ----------
+    full_pipeline.fit(X_train, y_train)
+
+    predictions = full_piepline.predict(X_train)
     return
 
 
