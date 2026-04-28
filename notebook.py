@@ -187,106 +187,12 @@ def _(strat_train_set):
 
     practice_df = practice_df.dropna(subset=attribs_to_clean)
 
-    """
-    Next step is to clear data from:
-
-    year (0.2850507449%)
-    fuel (0.6134003372%)
-    transmission (0.4041225751%)
-
-    title_status (1.7663282363%)
-    manufacturer (3.9079126572%)
-
-    summary data loss: 19396 indices
-    """
-
-    # List of columns with more missing data (21% - 40%)
-    attribs_to_clean = ["condition", "cylinders", "drive",
-                       "type", "paint_color", ""]
-
-    # 1. Condition: fill gaps with "unknown"
-    from sklearn.impute import SimpleImputer
-
-    imputer = SimpleImputer(strategy="constant", fill_value="unknown")
-
-    practice_df[["condition"]] = imputer.fit_transform(practice_df[["condition"]])
-
-    # 2. Type: fill gaps with "unknown"
-    practice_df[["type"]] = imputer.fit_transform(practice_df[["type"]])
-
-    # 3. Paint_color: fill gaps with "unknown"
-    practice_df[["paint_color"]] = imputer.fit_transform(practice_df[["paint_color"]])
-
-    # 4. Drive: fill NaN(s) depending on average car's type 
-    # If type is unknown, remain drive unknown aswell
-
-    drive_modes_by_type = {
-        "unknown": "unknown",
-        "SUV": "4wd",
-        "bus": "rwd",
-        "convertible": "rwd",
-        "coupe": "rwd",
-        "hatchback": "fwd",
-        "mini-van": "fwd",
-        "offroad": "4wd",
-        "other": "fwd",
-        "pickup": "fwd",
-        "sedan": "fwd",
-        "truck": "4wd",
-        "van": "fwd",
-        "wagon": "4wd",
-    }
-
-    drive_from_type = practice_df['type'].map(drive_modes_by_type)
-    practice_df['drive'] = practice_df['drive'].fillna(drive_from_type)
-
-    # 5. Cylinders: Fill NaN's depending on average cylinders-per-type value
-
-    cyl_modes_by_type = {
-        "unknown": 6,
-        "SUV": 6,
-        "bus": 8,
-        "convertible": 8,
-        "coupe": 8,
-        "hatchback": 4,
-        "mini-van": 6,
-        "offroad": 6,
-
-        "other": 6,
-        "pickup": 8,
-        "sedan": 4,
-        "truck": 8,
-        "van": 6,
-        "wagon": 4
-    }
-
-    cyls_from_type = practice_df['type'].map(cyl_modes_by_type)
-    practice_df['cylinders'] = practice_df['cylinders'].fillna(cyls_from_type)
-
-
-    # ---------- FEATURE ENGINEERING ----------
-
-    # Check corr matrix
-    # print(practice_df.corr(numeric_only=True))
-
-    # Create 'car_age' attribute
-    practice_df['car_age'] = 2026 - practice_df['year']
-
-    # Create 'miles_per_year' attribute
-    # Adding 1 to avoid zero division if there's a car made in 2026 in df
-    practice_df['miles_per_year'] = practice_df['odometer'] / (practice_df['car_age'] + 1)
-
-    # Drop 'year' column as it has -1 corr to 'car_age' column 
-    practice_df = practice_df.drop('year', axis=1)
-
-    # Corr matrix after clearing NaNs and feature engineering
-    # print(practice_df.corr(numeric_only=True))
-
 
     # ---------- LISTS AND DICTS ----------
 
     from CustomImputers import CombinedAttributesAdder, DependentImputer
     from sklearn.pipeline import Pipeline
+    from sklearn.impute import SimpleImputer
     from sklearn.compose import ColumnTransformer
     from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, StandardScaler
     from sklearn.ensemble import RandomForestRegressor
@@ -331,7 +237,6 @@ def _(strat_train_set):
     numeric_cats = ['odometer', 'cylinders']
     onehot_cats = ['transmission', 'drive', 'fuel', 'paint_color', 'type']
     ordinal_cats = ['title_status', 'condition']
-
 
 
     # ---------- PIPELINE  ----------
