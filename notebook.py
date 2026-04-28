@@ -267,6 +267,15 @@ def _(strat_train_set):
         ('encoding', encoding_ct),
         ('model', RandomForestRegressor())
     ])
+    return (practice_df,)
+
+
+@app.cell
+def _(practice_df):
+    # Split train set to X and Y
+
+    X_train = practice_df.drop('price', axis=1)
+    Y_train = practice_df.loc[:, 'price']
     return
 
 
