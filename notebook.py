@@ -269,10 +269,10 @@ def _(strat_test_set, strat_train_set):
     # Split train, test sets to X and Y
 
     X_train = strat_train_set.drop('price', axis=1)
-    Y_train = strat_train_set.loc[:, 'price']
+    y_train = strat_train_set.loc[:, 'price']
 
     X_test = strat_train_set.drop('price', axis=1)
-    Y_test = strat_test_set.loc[:, 'price']
+    y_test = strat_test_set.loc[:, 'price']
     return
 
 
