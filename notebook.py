@@ -171,23 +171,17 @@ def _(df):
     # Delete price_cat attribute 
     strat_train_set = strat_train_set.drop("price_cat", axis=1)
     strat_test_set = strat_test_set.drop("price_cat", axis=1)
+
+    # Initial data cleaning 
+    attribs_to_clean = ["year", "fuel", "transmission", "manufacturer", "title_status"]
+
+    strat_train_set = strat_train_set.dropna(subset=attribs_to_clean)
+    strat_test_set = strat_test_set.dropna(subset=attribs_to_clean)
     return (strat_train_set,)
 
 
 @app.cell
-def _(strat_train_set):
-    # Create copy of train set for practice
-    practice_df = strat_train_set.copy()
-
-
-    # ---------- DATA CLEANING ----------
-
-    # List of columns with little missing data
-    attribs_to_clean = ["year", "fuel", "transmission", "manufacturer", "title_status"]
-
-    practice_df = practice_df.dropna(subset=attribs_to_clean)
-
-
+def _():
     # ---------- LISTS AND DICTS ----------
 
     from CustomImputers import CombinedAttributesAdder, DependentImputer
@@ -261,21 +255,21 @@ def _(strat_train_set):
         ('cat', OneHotEncoder(handle_unknown='ignore'), onehot_cats)
     ], remainder='passthrough')
 
-    # Full pipeline
+    # Complete pipeline
     full_piepline = Pipeline([
         ('logic', prep_logic),
         ('encoding', encoding_ct),
         ('model', RandomForestRegressor())
     ])
-    return (practice_df,)
+    return
 
 
 @app.cell
-def _(practice_df):
+def _(strat_train_set):
     # Split train set to X and Y
 
-    X_train = practice_df.drop('price', axis=1)
-    Y_train = practice_df.loc[:, 'price']
+    X_train = strat_train_set.drop('price', axis=1)
+    Y_train = strat_train_set.loc[:, 'price']
     return
 
 
