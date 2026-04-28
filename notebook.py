@@ -133,7 +133,7 @@ def _(pd, raw_df):
 
         # Replace e.g. "6 cylinders" with just 6
         # Convert 'other' to NaN
-    df['cylinders'] = pd.to_numeric(tmp_cyl, errors='coerce').astype('float')    
+    df['cylinders'] = pd.to_numeric(tmp_cyl, errors='coerce').astype('float64')    
 
 
     # Reset indexes of deleted instancies
