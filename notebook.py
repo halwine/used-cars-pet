@@ -200,13 +200,13 @@ def _(strat_train_set):
     summary data loss: 19396 indices
     """
 
-    from sklearn.impute import SimpleImputer
-
     # List of columns with more missing data (21% - 40%)
     attribs_to_clean = ["condition", "cylinders", "drive",
                        "type", "paint_color", ""]
 
     # 1. Condition: fill gaps with "unknown"
+    from sklearn.impute import SimpleImputer
+
     imputer = SimpleImputer(strategy="constant", fill_value="unknown")
 
     practice_df[["condition"]] = imputer.fit_transform(practice_df[["condition"]])
@@ -283,24 +283,90 @@ def _(strat_train_set):
     # print(practice_df.corr(numeric_only=True))
 
 
-    # ---------- OneHot encoded columns ----------
+    # ---------- LISTS AND DICTS ----------
+
+    from CustomImputers import CombinedAttributesAdder, DependentImputer
     from sklearn.pipeline import Pipeline
     from sklearn.compose import ColumnTransformer
-    from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
+    from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, StandardScaler
+    from sklearn.ensemble import RandomForestRegressor
 
-    numeric_cats = ['odometer', 'cylinders', 'car_age', 'miles_per_year']
+    drive_modes_by_type = {
+        "unknown": "unknown",
+        "SUV": "4wd",
+        "bus": "rwd",
+        "convertible": "rwd",
+        "coupe": "rwd",
+        "hatchback": "fwd",
+        "mini-van": "fwd",
+        "offroad": "4wd",
+        "other": "fwd",
+        "pickup": "fwd",
+        "sedan": "fwd",
+        "truck": "4wd",
+        "van": "fwd",
+        "wagon": "4wd",
+    }
+    cyl_modes_by_type = {
+        "unknown": 6,
+        "SUV": 6,
+        "bus": 8,
+        "convertible": 8,
+        "coupe": 8,
+        "hatchback": 4,
+        "mini-van": 6,
+        "offroad": 6,
+
+        "other": 6,
+        "pickup": 8,
+        "sedan": 4,
+        "truck": 8,
+        "van": 6,
+        "wagon": 4
+    }
+
+    title_status_order = ['missing', 'parts_only', 'salvage', 'rebuilt', 'lien', 'clean']
+    condition_order = ['unknown', 'salvage', 'fair', 'good', 'excellent','like new', 'new']
+
+    numeric_cats = ['odometer', 'cylinders']
     onehot_cats = ['transmission', 'drive', 'fuel', 'paint_color', 'type']
     ordinal_cats = ['title_status', 'condition']
 
-    title_status_order = ['missing', 'parts_only', 'salvage', 'rebuilt', 'lien', 'clean']
-    condition_order = ['salvage', 'fair', 'good', 'excellent','like new', 'new']
 
-    # ct = ColumnTransformer[
-    #     () 
-    # ]
 
-    # cat_encoder = OneHotEncoder(sparse_output=False)
-    # transmission_cat_1hot = cat_encoder.fit_transform(practice_df[['transmission'])]
+    # ---------- PIPELINE  ----------
+
+    # Preprocessing logic
+    prep_logic = Pipeline([
+        ('unknown_imp', ColumnTransformer([
+            ('impute_unknown', SimpleImputer(strategy='constant', fill_value='unknown'), ['condition', 'type', 'paint_color'])
+        ], remainder='passthrough')),
+        ('attr_adder', CombinedAttributesAdder()),
+        ('new_features_scaler', ColumnTransformer([
+            ('scaler', StandardScaler(), ['car_age', 'miles_per_year'])
+        ], remainder='passthrough')),
+        ('drive_imp', DependentImputer(drive_modes_by_type, 'drive', 'type')),
+        ('cyl_imp', DependentImputer(cyl_modes_by_type, 'cylinders', 'type'))
+         ])
+
+    # Columns encoding
+    encoding_ct = ColumnTransformer([
+        ('num', StandardScaler(), numeric_cats),
+        ('ord', OrdinalEncoder(categories=[title_status_order, condition_order]), ordinal_cats),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), onehot_cats)
+    ], remainder='passthrough')
+
+    # Full pipeline
+    full_piepline = Pipeline([
+        ('logic', prep_logic),
+        ('encoding', encoding_ct),
+        ('model', RandomForestRegressor())
+    ])
+    return
+
+
+@app.cell
+def _():
     return
 
 
