@@ -20,6 +20,17 @@ def _(pd):
 
     print("Path to dataset files:", path)
     raw_df = pd.read_csv(path + "/" + "vehicles.csv")
+
+    # Get rid of duplicates
+    check_cols = ['year', 'manufacturer', 'odometer']
+
+    rows_before = raw_df.shape[0]
+
+    raw_df = raw_df.drop_duplicates(subset=check_cols, keep='first', ignore_index=True)
+
+    rows_after = raw_df.shape[0]
+
+    print(f"{rows_before - rows_after} rows were dropped.")
     return (raw_df,)
 
 
@@ -292,6 +303,30 @@ def _(predictions, y_test):
 
     rmse = root_mean_squared_error(y_test, predictions)
     print(f"RMSE {rmse:,.2f}")
+    return
+
+
+@app.cell
+def _(pd, predictions, y_test):
+    df_comparison = pd.DataFrame({
+        'Real Price': y_test.values,
+        'Predicted price': predictions
+    })
+
+    print(df_comparison.head(10))
+    return
+
+
+@app.cell
+def _(X_test, X_train):
+    suspicious_car = X_test.iloc[[3]]
+
+    duplicates = X_train.merge(suspicious_car)
+
+    print(len(duplicates))
+
+    if len(duplicates) > 0:
+        print(duplicates)
     return
 
 
