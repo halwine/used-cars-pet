@@ -229,8 +229,9 @@ def _():
 
     # ---------- PIPELINE ----------
 
-    import sklearn
-    sklearn.set_config(transform_output="pandas")
+    from sklearn import set_config
+
+    set_config(transform_output="pandas")
 
     prep_logic = Pipeline([
         ('features', ColumnTransformer([
@@ -265,9 +266,9 @@ def _(strat_test_set, strat_train_set):
     X_train = strat_train_set.drop('price', axis=1)
     y_train = strat_train_set.loc[:, 'price']
 
-    X_test = strat_train_set.drop('price', axis=1)
+    X_test = strat_test_set.drop('price', axis=1)
     y_test = strat_test_set.loc[:, 'price']
-    return X_test, X_train, y_train
+    return X_test, X_train, y_test, y_train
 
 
 @app.cell
@@ -280,9 +281,17 @@ def _(X_train):
 def _(X_test, X_train, full_pipeline, y_train):
     full_pipeline.fit(X_train, y_train)
 
-    # 3. Predict
     predictions = full_pipeline.predict(X_test)
     print("Success! Size of predictions:", len(predictions))
+    return (predictions,)
+
+
+@app.cell
+def _(predictions, y_test):
+    from sklearn.metrics import root_mean_squared_error
+
+    rmse = root_mean_squared_error(y_test, predictions)
+    print(f"RMSE {rmse:,.2f}")
     return
 
 
