@@ -31,12 +31,6 @@ def _(raw_df):
 
 @app.cell
 def _(raw_df):
-    raw_df.nunique()
-    return
-
-
-@app.cell
-def _(raw_df):
     # Check missing values percent for each attribute
     raw_df.isna().mean().sort_values(ascending=False) * 100
     return
@@ -225,44 +219,42 @@ def _():
         "wagon": 4
     }
 
-    title_status_order = ['missing', 'parts_only', 'salvage', 'rebuilt', 'lien', 'clean']
+    title_status_order = ['missing', 'parts only', 'salvage', 'rebuilt', 'lien', 'clean']
     condition_order = ['unknown', 'salvage', 'fair', 'good', 'excellent','like new', 'new']
 
     numeric_cats = ['odometer', 'cylinders']
-    onehot_cats = ['transmission', 'drive', 'fuel', 'paint_color', 'type']
+    onehot_cats = ['transmission', 'drive', 'fuel', 'paint_color', 'type', 'manufacturer', 'state']
     ordinal_cats = ['title_status', 'condition']
 
 
-    # ---------- PIPELINE  ----------
+    # ---------- PIPELINE ----------
 
-    # Preprocessing logic
+    import sklearn
+    sklearn.set_config(transform_output="pandas")
+
     prep_logic = Pipeline([
-        ('unknown_imp', ColumnTransformer([
-            ('impute_unknown', SimpleImputer(strategy='constant', fill_value='unknown'), ['condition', 'type', 'paint_color'])
-        ], remainder='passthrough')),
-        ('attr_adder', CombinedAttributesAdder()),
-        ('new_features_scaler', ColumnTransformer([
-            ('scaler', StandardScaler(), ['car_age', 'miles_per_year'])
-        ], remainder='passthrough')),
-        ('drive_imp', DependentImputer(drive_modes_by_type, 'drive', 'type')),
-        ('cyl_imp', DependentImputer(cyl_modes_by_type, 'cylinders', 'type'))
-         ])
+        ('features', ColumnTransformer([
+            ('impute_unknown', SimpleImputer(strategy='constant', fill_value='unknown'), 
+             ['condition', 'type', 'paint_color']),
+            ('attr_adder', CombinedAttributesAdder(), ['year', 'odometer']),
+        ], remainder='passthrough', verbose_feature_names_out=False)),
 
-    # Columns encoding
+        ('scaler', ColumnTransformer([
+            ('std_scaler', StandardScaler(), ['car_age', 'miles_per_year'])
+        ], remainder='passthrough', verbose_feature_names_out=False))
+    ])
+
     encoding_ct = ColumnTransformer([
         ('num', StandardScaler(), numeric_cats),
         ('ord', OrdinalEncoder(categories=[title_status_order, condition_order]), ordinal_cats),
-        ('cat', OneHotEncoder(handle_unknown='ignore'), onehot_cats)
-    ], remainder='passthrough')
+        ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), onehot_cats)
+    ], remainder='drop', verbose_feature_names_out=False) 
 
-    # Complete pipeline
     full_pipeline = Pipeline([
         ('logic', prep_logic),
         ('encoding', encoding_ct),
-        ('model', RandomForestRegressor())
+        ('model', RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1))
     ])
-
-    full_pipeline.set_output(transform="pandas")
     return (full_pipeline,)
 
 
@@ -275,15 +267,22 @@ def _(strat_test_set, strat_train_set):
 
     X_test = strat_train_set.drop('price', axis=1)
     y_test = strat_test_set.loc[:, 'price']
-    return X_train, y_train
+    return X_test, X_train, y_train
 
 
 @app.cell
-def _(X_train, full_piepline, full_pipeline, y_train):
-    # ---------- TRAINING AND TESTING MODEL ----------
+def _(X_train):
+    X_train.info()
+    return
+
+
+@app.cell
+def _(X_test, X_train, full_pipeline, y_train):
     full_pipeline.fit(X_train, y_train)
 
-    predictions = full_piepline.predict(X_train)
+    # 3. Predict
+    predictions = full_pipeline.predict(X_test)
+    print("Success! Size of predictions:", len(predictions))
     return
 
 
