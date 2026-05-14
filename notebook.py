@@ -262,10 +262,19 @@ def _():
         ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), onehot_cats)
     ], remainder='drop', verbose_feature_names_out=False) 
 
+    # full_pipeline = Pipeline([
+    #     ('logic', prep_logic),
+    #     ('encoding', encoding_ct),
+    #     ('model', RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1))
+    # ])
+
+    from sklearn.linear_model import LinearRegression
+
     full_pipeline = Pipeline([
         ('logic', prep_logic),
         ('encoding', encoding_ct),
-        ('model', RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1))
+        ('imputer', SimpleImputer(strategy='mean')),
+        ('model', LinearRegression(n_jobs=-1))
     ])
     return (full_pipeline,)
 
@@ -302,7 +311,7 @@ def _(predictions, y_test):
     from sklearn.metrics import root_mean_squared_error
 
     rmse = root_mean_squared_error(y_test, predictions)
-    print(f"RMSE {rmse:,.2f}")
+    print(f"RMSE {rmse:.2f}")
     return
 
 
@@ -310,23 +319,19 @@ def _(predictions, y_test):
 def _(pd, predictions, y_test):
     df_comparison = pd.DataFrame({
         'Real Price': y_test.values,
-        'Predicted price': predictions
+        'Predicted Price': predictions
     })
 
     print(df_comparison.head(10))
-    return
+    return (df_comparison,)
 
 
 @app.cell
-def _(X_test, X_train):
-    suspicious_car = X_test.iloc[[3]]
+def _(df_comparison):
+    df_comparison['Error'] = df_comparison['Predicted Price'] - df_comparison['Real Price']
 
-    duplicates = X_train.merge(suspicious_car)
-
-    print(len(duplicates))
-
-    if len(duplicates) > 0:
-        print(duplicates)
+    mean_error = df_comparison['Error'].mean()
+    print(f"Mean error: {mean_error:.2f}")
     return
 
 
