@@ -275,13 +275,10 @@ def _():
         ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), onehot_cats)
     ], remainder='drop', verbose_feature_names_out=False)
 
-    from sklearn.linear_model import LinearRegression
-
     full_pipeline = Pipeline([
         ('logic', prep_logic),
         ('encoding', encoding_ct),
-        # ('model', RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1))
-        ('model', LinearRegression())
+        ('model', RandomForestRegressor(n_estimators=300, random_state=42, n_jobs=-1))
     ])
     return (full_pipeline,)
 
@@ -302,17 +299,6 @@ def _(strat_test_set, strat_train_set):
 def _(X_train):
     X_train.isna().mean().sort_values(ascending=0) * 100
     return
-
-
-@app.cell
-def _(X_train, full_pipeline, pd):
-    # Мы берем все шаги до последнего (модели) и трансформируем данные
-    X_prepared = full_pipeline[:-1].transform(X_train)
-
-    # Теперь проверим пропуски в том, что получилось
-    pd.set_option('display.max_rows', None) 
-    print(X_prepared.isna().sum())
-    return (X_prepared,)
 
 
 @app.cell
@@ -356,11 +342,6 @@ def _(df_comparison):
 @app.cell
 def _(X_prepared):
     print(X_prepared[['odometer', 'car_age', 'miles_per_year']].describe())
-    return
-
-
-@app.cell
-def _():
     return
 
 
