@@ -17,8 +17,8 @@ This is my first pet project created while learning the basics of Classic Machin
 
 ### Current status
 * [X] Basic data cleaning
-* [ ] Model training
-* [ ] Optimization
+* [X] Model training
+* [X] Optimization
 
 ### How to use
 1. Clone the repository: [https://github.com/halwine/used-cars-pet](https://github.com/halwine/used-cars-pet)
