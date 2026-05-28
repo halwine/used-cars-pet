@@ -186,6 +186,12 @@ def _(df):
 
 
 @app.cell
+def _(strat_train_set):
+    strat_train_set.isna().mean().sort_values(ascending=False) * 100
+    return
+
+
+@app.cell
 def _():
     # ---------- LISTS AND DICTS ----------
 
@@ -245,36 +251,37 @@ def _():
     set_config(transform_output="pandas")
 
     prep_logic = Pipeline([
-        ('features', ColumnTransformer([
-            ('impute_unknown', SimpleImputer(strategy='constant', fill_value='unknown'), 
-             ['condition', 'type', 'paint_color']),
-            ('attr_adder', CombinedAttributesAdder(), ['year', 'odometer']),
+        # Fill NaNs with 'unknown' value in 'condition', 'type' and 'pain_color' features
+        ('impute_unknown_cats', ColumnTransformer([
+            ('impute_unknown', SimpleImputer(strategy='constant', fill_value='unknown'), ['condition', 'type', 'paint_color'])
         ], remainder='passthrough', verbose_feature_names_out=False)),
 
-        ('scaler', ColumnTransformer([
-            ('std_scaler', StandardScaler(), ['car_age', 'miles_per_year'])
-        ], remainder='passthrough', verbose_feature_names_out=False))
+        # Create 'car_age' and 'miles_per_year' features
+        ('attr_adder', CombinedAttributesAdder()), 
+
+        # Fill NaNs with modes from mapping dicts in 'drive' and 'cylinders' by 'type' feature
+        ('drive_by_mode', DependentImputer(mapping_dict=drive_modes_by_type, target_col='drive', dependency_col='type')),
+        ('cylinders_by_mode', DependentImputer(mapping_dict=cyl_modes_by_type, target_col='cylinders', dependency_col='type')),
     ])
 
     encoding_ct = ColumnTransformer([
-        ('num', StandardScaler(), numeric_cats),
-        ('ord', OrdinalEncoder(categories=[title_status_order, condition_order]), ordinal_cats),
-        ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), onehot_cats)
-    ], remainder='drop', verbose_feature_names_out=False) 
+        # Scale all numeric cats
+        ('num', StandardScaler(), ['odometer', 'cylinders', 'car_age', 'miles_per_year']),
 
-    # full_pipeline = Pipeline([
-    #     ('logic', prep_logic),
-    #     ('encoding', encoding_ct),
-    #     ('model', RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1))
-    # ])
+        # Ordinal encoding
+        ('ord', OrdinalEncoder(categories=[title_status_order, condition_order]), ordinal_cats),
+
+        # OneHot encoding
+        ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), onehot_cats)
+    ], remainder='drop', verbose_feature_names_out=False)
 
     from sklearn.linear_model import LinearRegression
 
     full_pipeline = Pipeline([
         ('logic', prep_logic),
         ('encoding', encoding_ct),
-        ('imputer', SimpleImputer(strategy='mean')),
-        ('model', LinearRegression(n_jobs=-1))
+        # ('model', RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1))
+        ('model', LinearRegression())
     ])
     return (full_pipeline,)
 
@@ -293,8 +300,19 @@ def _(strat_test_set, strat_train_set):
 
 @app.cell
 def _(X_train):
-    X_train.info()
+    X_train.isna().mean().sort_values(ascending=0) * 100
     return
+
+
+@app.cell
+def _(X_train, full_pipeline, pd):
+    # Мы берем все шаги до последнего (модели) и трансформируем данные
+    X_prepared = full_pipeline[:-1].transform(X_train)
+
+    # Теперь проверим пропуски в том, что получилось
+    pd.set_option('display.max_rows', None) 
+    print(X_prepared.isna().sum())
+    return (X_prepared,)
 
 
 @app.cell
@@ -332,6 +350,12 @@ def _(df_comparison):
 
     mean_error = df_comparison['Error'].mean()
     print(f"Mean error: {mean_error:.2f}")
+    return
+
+
+@app.cell
+def _(X_prepared):
+    print(X_prepared[['odometer', 'car_age', 'miles_per_year']].describe())
     return
 
 
