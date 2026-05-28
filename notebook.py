@@ -200,7 +200,9 @@ def _():
     from sklearn.impute import SimpleImputer
     from sklearn.compose import ColumnTransformer
     from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder, StandardScaler
+
     from sklearn.ensemble import RandomForestRegressor
+    from catboost import CatBoostRegressor
 
     drive_modes_by_type = {
         "unknown": "unknown",
@@ -278,7 +280,15 @@ def _():
     full_pipeline = Pipeline([
         ('logic', prep_logic),
         ('encoding', encoding_ct),
-        ('model', RandomForestRegressor(n_estimators=300, random_state=42, n_jobs=-1))
+        # ('model', RandomForestRegressor(n_estimators=300, random_state=42, n_jobs=-1))
+        ('model', CatBoostRegressor(
+            iterations=3500,
+            learning_rate=0.035,
+            depth=10,
+            thread_count=1,
+            random_state=42,
+            silent=True
+        ))
     ])
     return (full_pipeline,)
 
@@ -340,8 +350,7 @@ def _(df_comparison):
 
 
 @app.cell
-def _(X_prepared):
-    print(X_prepared[['odometer', 'car_age', 'miles_per_year']].describe())
+def _():
     return
 
 
